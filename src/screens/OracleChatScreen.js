@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import Starfield from '../components/Starfield';
-import { colors, spacing } from '../constants/theme';
+import { colors, spacing, typography } from '../constants/theme';
 
 const messages = [
   {
@@ -78,16 +78,19 @@ const styles = StyleSheet.create({
   },
   // starfield handled by component
   header: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
     color: colors.gold,
+    marginBottom: spacing.xs,
+    ...typography.title,
   },
   subtitle: {
     color: colors.cyan,
-    marginTop: spacing.xs,
+    marginBottom: spacing.md,
+    ...typography.body,
   },
   chat: {
     paddingBottom: spacing.lg,
@@ -113,6 +116,7 @@ const styles = StyleSheet.create({
   messageText: {
     fontSize: 14,
     lineHeight: 20,
+    ...typography.body,
   },
   oracleText: {
     color: colors.white,
@@ -133,6 +137,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: colors.white,
     paddingRight: spacing.sm,
+    ...typography.body,
   },
   sendButton: {
     backgroundColor: colors.purple,
@@ -144,5 +149,6 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: '700',
     letterSpacing: 0.4,
+    ...typography.body,
   },
 });

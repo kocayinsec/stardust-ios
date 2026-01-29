@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import { colors, spacing } from '../constants/theme';
+import { colors, spacing, typography } from '../constants/theme';
 
 export default function OnboardingScreen({ navigation }) {
   return (
@@ -52,11 +52,14 @@ const styles = StyleSheet.create({
     color: colors.gold,
     textAlign: 'center',
     marginBottom: spacing.xs,
+    ...typography.title,
   },
   subtitle: {
     color: colors.cyan,
     textAlign: 'center',
     marginBottom: spacing.lg,
+    fontSize: 16,
+    ...typography.body,
   },
   card: {
     borderRadius: 18,
@@ -70,8 +73,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textTransform: 'uppercase',
     letterSpacing: 1.5,
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
     marginBottom: spacing.xs,
+    ...typography.body,
   },
   input: {
     backgroundColor: 'rgba(255,255,255,0.06)',
@@ -80,6 +84,8 @@ const styles = StyleSheet.create({
     color: colors.white,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
+    marginBottom: spacing.sm,
+    ...typography.body,
   },
   button: {
     marginTop: spacing.lg,
@@ -95,5 +101,6 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: '700',
     letterSpacing: 0.6,
+    ...typography.body,
   },
 });

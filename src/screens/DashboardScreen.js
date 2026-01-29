@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import Starfield from '../components/Starfield';
-import { colors, spacing } from '../constants/theme';
+import { colors, spacing, typography } from '../constants/theme';
 
 const energy = {
   type: 'Nebula',
@@ -55,11 +55,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.gold,
     textAlign: 'center',
+    marginBottom: spacing.xs,
+    ...typography.title,
   },
   subtitle: {
     color: colors.cyan,
     textAlign: 'center',
     marginBottom: spacing.lg,
+    fontSize: 16,
+    ...typography.body,
   },
   meterWrap: {
     alignItems: 'center',
@@ -91,10 +95,12 @@ const styles = StyleSheet.create({
     fontSize: 36,
     color: colors.gold,
     fontWeight: '700',
+    ...typography.title,
   },
   energyType: {
     color: colors.white,
     marginTop: spacing.xs,
+    ...typography.body,
   },
   card: {
     borderRadius: 16,
@@ -107,10 +113,12 @@ const styles = StyleSheet.create({
     color: colors.gold,
     fontWeight: '700',
     marginBottom: spacing.xs,
+    ...typography.title,
   },
   cardText: {
     color: colors.white,
     lineHeight: 22,
+    ...typography.body,
   },
   oracleButton: {
     marginTop: spacing.md,
@@ -123,5 +131,6 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: '700',
     letterSpacing: 0.6,
+    ...typography.body,
   },
 });

@@ -15,6 +15,16 @@ export const spacing = {
 };
 
 export const fonts = {
-  title: 'System',
+  title: 'Georgia',
   body: 'System',
+};
+
+export const typography = {
+  title: {
+    fontFamily: fonts.title,
+    letterSpacing: 0.5,
+  },
+  body: {
+    fontFamily: fonts.body,
+  },
 };
