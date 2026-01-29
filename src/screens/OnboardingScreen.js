@@ -213,6 +213,11 @@ export default function OnboardingScreen({ navigation }) {
         <Text style={styles.title}>Stardust AI</Text>
         <Text style={styles.subtitle}>Reveal your cosmic identity</Text>
         <Text style={styles.helper}>Attune your star map to unlock your oracle.</Text>
+        <View style={styles.progressRow}>
+          <View style={[styles.progressDot, styles.progressDotActive]} />
+          <View style={styles.progressDot} />
+          <View style={styles.progressDot} />
+        </View>
       </Animated.View>
 
       <Animated.View
@@ -375,6 +380,25 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     ...typography.body,
+  },
+  progressRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+  },
+  progressDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.28)',
+    marginHorizontal: 4,
+  },
+  progressDotActive: {
+    backgroundColor: colors.gold,
+    shadowColor: 'rgba(255, 215, 160, 0.9)',
+    shadowOpacity: 0.9,
+    shadowRadius: 8,
   },
   card: {
     borderRadius: 22,
