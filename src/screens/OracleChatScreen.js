@@ -7,17 +7,14 @@ import Starfield from '../components/Starfield';
 import { colors, spacing } from '../constants/theme';
 import { useTypography } from '../constants/typography';
 import { useSubscription } from '../iap/SubscriptionProvider';
+import { createOracleService } from '../oracle/oracleService';
+import {
+  getOracleDailyState,
+  normalizeOracleDailyState,
+  setOracleDailyState,
+} from '../utils/storage';
 
 const dailyLimit = 3;
-
-const mockOracleResponses = [
-  'The comet you chase is already within reach. Move with devotion, not haste.',
-  'A forgotten promise hums beneath your week. Honor it and the path clears.',
-  'Protect your mornings. The first hour is a portal you keep leaving unguarded.',
-  'Your next win is quiet. Whisper your work into the world and let it bloom.',
-  'Say no to what scatters you. Your power is in the ritual of focus.',
-  'The stars favor completion over perfection. Finish one sacred thing.',
-];
 
 const initialMessages = [
   {
@@ -82,7 +79,8 @@ export default function OracleChatScreen() {
   const [input, setInput] = useState('');
   const [remainingQuestions, setRemainingQuestions] = useState(dailyLimit);
   const [lastQuestionDay, setLastQuestionDay] = useState(new Date().toDateString());
-  const responseIndex = useRef(0);
+  const [isSending, setIsSending] = useState(false);
+  const oracleService = useMemo(() => createOracleService(), []);
   const scrollRef = useRef(null);
   const headerAnim = useRef(new Animated.Value(0)).current;
   const inputGlow = useRef(new Animated.Value(0)).current;
@@ -113,6 +111,34 @@ export default function OracleChatScreen() {
 
     return () => glowLoop.stop();
   }, [headerAnim, inputGlow]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadDailyState = async () => {
+      const stored = await getOracleDailyState(dailyLimit);
+      const normalized = normalizeOracleDailyState({
+        remainingQuestions: stored.remainingQuestions,
+        lastQuestionDay: stored.lastQuestionDay,
+        limit: dailyLimit,
+      });
+
+      if (isMounted) {
+        setRemainingQuestions(normalized.remainingQuestions);
+        setLastQuestionDay(normalized.lastQuestionDay);
+      }
+    };
+
+    loadDailyState();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    setOracleDailyState({ remainingQuestions, lastQuestionDay });
+  }, [lastQuestionDay, remainingQuestions]);
 
   const headerStyle = {
     opacity: headerAnim,
@@ -154,20 +180,27 @@ export default function OracleChatScreen() {
   };
 
   const maybeResetDailyLimit = () => {
-    const today = new Date().toDateString();
-    if (today !== lastQuestionDay) {
-      setRemainingQuestions(dailyLimit);
-      setLastQuestionDay(today);
+    const normalized = normalizeOracleDailyState({
+      remainingQuestions,
+      lastQuestionDay,
+      limit: dailyLimit,
+    });
+
+    if (normalized.lastQuestionDay !== lastQuestionDay) {
+      setRemainingQuestions(normalized.remainingQuestions);
+      setLastQuestionDay(normalized.lastQuestionDay);
     }
+
+    return normalized.remainingQuestions;
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const trimmed = input.trim();
-    if (!trimmed) return;
+    if (!trimmed || isSending) return;
 
-    maybeResetDailyLimit();
+    const effectiveRemaining = maybeResetDailyLimit();
 
-    if (!isSubscribed && remainingQuestions <= 0) {
+    if (!isSubscribed && effectiveRemaining <= 0) {
       triggerWarningHaptic();
       setMessages((prev) => [
         ...prev,
@@ -182,21 +215,62 @@ export default function OracleChatScreen() {
     }
 
     triggerImpactHaptic();
-    const nextResponse = mockOracleResponses[responseIndex.current % mockOracleResponses.length];
-    responseIndex.current += 1;
-
-    setMessages((prev) => [
-      ...prev,
-      { id: `u-${Date.now()}`, type: 'user', text: trimmed },
-      { id: `o-${Date.now() + 1}`, type: 'oracle', text: nextResponse },
-    ]);
-    if (!isSubscribed) {
-      setRemainingQuestions((prev) => Math.max(prev - 1, 0));
-    }
     setInput('');
+    setIsSending(true);
+
+    const userMessage = { id: `u-${Date.now()}`, type: 'user', text: trimmed };
+    const history = [...messages, userMessage].map((item) => ({
+      id: item.id,
+      role: item.type === 'user' ? 'user' : 'assistant',
+      content: item.text,
+    }));
+
+    setMessages((prev) => [...prev, userMessage]);
+
+    try {
+      const reply = await oracleService.sendMessage({
+        message: trimmed,
+        history,
+        userProfile: { subscribed: isSubscribed },
+        clientContext: {
+          remainingQuestions: effectiveRemaining,
+          dailyLimit,
+        },
+      });
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: reply.id || `o-${Date.now()}`,
+          type: 'oracle',
+          text: reply.text || 'The stars are quiet — ask again in a moment.',
+        },
+      ]);
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `o-${Date.now()}`,
+          type: 'oracle',
+          text: 'The stars are quiet right now. Try again shortly.',
+        },
+      ]);
+    } finally {
+      setIsSending(false);
+    }
+
+    if (!isSubscribed) {
+      setRemainingQuestions(Math.max(effectiveRemaining - 1, 0));
+    }
   };
 
-  const limitReached = !isSubscribed && remainingQuestions <= 0;
+  const { remainingQuestions: effectiveRemaining } = normalizeOracleDailyState({
+    remainingQuestions,
+    lastQuestionDay,
+    limit: dailyLimit,
+  });
+  const limitReached = !isSubscribed && effectiveRemaining <= 0;
+  const inputLocked = limitReached || isSending;
 
   const handleGateUnlock = () => {
     if (isPurchasing || isSubscribed) return;
@@ -219,7 +293,7 @@ export default function OracleChatScreen() {
               ? 'Stardust Gold active — unlimited questions'
               : limitReached
               ? 'Daily limit reached — return at dawn'
-              : `${remainingQuestions} free questions left today`}
+              : `${effectiveRemaining} free questions left today`}
           </Text>
         </View>
       </Animated.View>
@@ -267,19 +341,21 @@ export default function OracleChatScreen() {
           style={styles.input}
           value={input}
           onChangeText={setInput}
-          editable={!limitReached}
+          editable={!inputLocked}
         />
         <Pressable
           style={({ pressed }) => [
             styles.sendButton,
-            limitReached && styles.sendButtonDisabled,
-            pressed && !limitReached && styles.sendButtonPressed,
+            inputLocked && styles.sendButtonDisabled,
+            pressed && !inputLocked && styles.sendButtonPressed,
           ]}
           onPress={handleSend}
           onPressIn={triggerSelectionHaptic}
-          disabled={limitReached}
+          disabled={inputLocked}
         >
-          <Text style={styles.sendButtonText}>{limitReached ? 'Locked' : 'Send'}</Text>
+          <Text style={styles.sendButtonText}>
+            {isSending ? 'Sending…' : limitReached ? 'Locked' : 'Send'}
+          </Text>
         </Pressable>
       </BlurView>
     </LinearGradient>

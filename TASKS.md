@@ -8,6 +8,7 @@
 - Stop after ~4 hours and report back.
 
 ## Backlog (priority)
+- [x] Persist Star Seed ID + Oracle daily limits in AsyncStorage. (Added storage helpers, persisted Star Seed ID, loaded/resets daily limit, and updated Oracle gating.)
 - [x] Prepare App Store assets checklist + placeholders. (Added docs/APP_STORE.md and assets/app-store/ structure with README placeholders.)
 - [x] Add IAP store setup checklist + app config updates (bundle/package IDs) + EAS build config. (Added IAP_STORE_SETUP.md, set android.package in app.json, added eas.json.)
 - [x] Implement IAP subscription wiring for Stardust Gold. (Added SubscriptionProvider with expo-in-app-purchases scaffolding, wired Gold CTA + Oracle gate CTA to purchase, and updated UI for active/purchasing states.)
@@ -22,6 +23,7 @@
 - [x] (Optional) Load a custom serif font with expo-font for consistent typography across platforms. (Added Cormorant Garamond font asset, expo-font loader, TypographyProvider with fallback.)
 
 ## Completed
+- [x] Scaffold Oracle backend integration plan. (Added API client + prompt system structure, adapter pattern with mock/real switch, and wired Oracle chat to adapter with TODOs for backend contract.)
 - [x] Polish micro-animations + premium UI refinements across onboarding/dashboard/oracle. (Added floating card halo, staggered entrances, pulsing button glows, message bubble entrance animation, and richer glow/shadow tuning.)
 - [x] Implement Energy Meter (core hook) on Dashboard. (Added animated EnergyMeter component with pulsing ring/segments/orbit + Daily Readings cards in ethereal gradient styling.)
 - [x] Implement Oracle Chat behavior mock + daily free question gating. (Added mock oracle responses, daily 3-question UI gating, limit banner, and Stardust Gold upsell card.)

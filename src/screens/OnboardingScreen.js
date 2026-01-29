@@ -8,6 +8,7 @@ import ConstellationSigil from '../components/ConstellationSigil';
 import CosmicSealReveal from '../components/CosmicSealReveal';
 import { colors, spacing } from '../constants/theme';
 import { useTypography } from '../constants/typography';
+import { getStarSeedId, setStarSeedId as persistStarSeedId } from '../utils/storage';
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
@@ -30,6 +31,19 @@ export default function OnboardingScreen({ navigation }) {
   const buttonGlow = useRef(new Animated.Value(0)).current;
   const exitOpacity = useRef(new Animated.Value(0)).current;
   const navTimeout = useRef(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    getStarSeedId().then((storedId) => {
+      if (storedId && isMounted) {
+        setStarSeedId(storedId);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     Animated.parallel([
@@ -153,6 +167,7 @@ export default function OnboardingScreen({ navigation }) {
       .toString()
       .slice(-4)}`;
     setStarSeedId(nextId);
+    persistStarSeedId(nextId);
     revealAnim.setValue(0);
     exitOpacity.setValue(0);
     Animated.timing(revealAnim, {
