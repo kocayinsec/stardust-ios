@@ -80,6 +80,7 @@ export default function OracleChatScreen() {
   const [remainingQuestions, setRemainingQuestions] = useState(dailyLimit);
   const [lastQuestionDay, setLastQuestionDay] = useState(new Date().toDateString());
   const responseIndex = useRef(0);
+  const scrollRef = useRef(null);
   const headerAnim = useRef(new Animated.Value(0)).current;
   const inputGlow = useRef(new Animated.Value(0)).current;
 
@@ -137,6 +138,18 @@ export default function OracleChatScreen() {
     ],
   };
 
+  const triggerSelectionHaptic = () => {
+    Haptics.selectionAsync().catch(() => null);
+  };
+
+  const triggerImpactHaptic = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => null);
+  };
+
+  const triggerWarningHaptic = () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => null);
+  };
+
   const maybeResetDailyLimit = () => {
     const today = new Date().toDateString();
     if (today !== lastQuestionDay) {
@@ -152,6 +165,7 @@ export default function OracleChatScreen() {
     maybeResetDailyLimit();
 
     if (remainingQuestions <= 0) {
+      triggerWarningHaptic();
       setMessages((prev) => [
         ...prev,
         {
@@ -164,6 +178,7 @@ export default function OracleChatScreen() {
       return;
     }
 
+    triggerImpactHaptic();
     const nextResponse = mockOracleResponses[responseIndex.current % mockOracleResponses.length];
     responseIndex.current += 1;
 
@@ -177,6 +192,10 @@ export default function OracleChatScreen() {
   };
 
   const limitReached = remainingQuestions <= 0;
+
+  const handleGateUnlock = () => {
+    triggerImpactHaptic();
+  };
 
   return (
     <LinearGradient
@@ -196,7 +215,12 @@ export default function OracleChatScreen() {
         </View>
       </Animated.View>
 
-      <ScrollView contentContainerStyle={styles.chat} showsVerticalScrollIndicator={false}>
+      <Animated.ScrollView
+        ref={scrollRef}
+        contentContainerStyle={styles.chat}
+        showsVerticalScrollIndicator={false}
+        onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+      >
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} />
         ))}
@@ -208,12 +232,16 @@ export default function OracleChatScreen() {
               You have used your three free questions. Unlock Stardust Gold for endless
               whispers, priority replies, and deeper rituals.
             </Text>
-            <TouchableOpacity style={styles.gateButton}>
+            <Pressable
+              style={({ pressed }) => [styles.gateButton, pressed && styles.buttonPressed]}
+              onPress={handleGateUnlock}
+              onPressIn={triggerSelectionHaptic}
+            >
               <Text style={styles.gateButtonText}>Unlock Stardust Gold</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         )}
-      </ScrollView>
+      </Animated.ScrollView>
 
       <BlurView intensity={30} tint="dark" style={styles.inputWrap}>
         <Animated.View pointerEvents="none" style={[styles.inputGlow, inputGlowStyle]} />
@@ -225,12 +253,18 @@ export default function OracleChatScreen() {
           onChangeText={setInput}
           editable={!limitReached}
         />
-        <TouchableOpacity
-          style={[styles.sendButton, limitReached && styles.sendButtonDisabled]}
+        <Pressable
+          style={({ pressed }) => [
+            styles.sendButton,
+            limitReached && styles.sendButtonDisabled,
+            pressed && !limitReached && styles.sendButtonPressed,
+          ]}
           onPress={handleSend}
+          onPressIn={triggerSelectionHaptic}
+          disabled={limitReached}
         >
           <Text style={styles.sendButtonText}>{limitReached ? 'Locked' : 'Send'}</Text>
-        </TouchableOpacity>
+        </Pressable>
       </BlurView>
     </LinearGradient>
   );
@@ -308,6 +342,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: 12,
   },
+  buttonPressed: {
+    transform: [{ scale: 0.98 }],
+    opacity: 0.9,
+  },
   gateButtonText: {
     color: colors.midnight,
     fontWeight: '700',
@@ -382,6 +420,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
+  },
+  sendButtonPressed: {
+    transform: [{ scale: 0.97 }],
+    opacity: 0.9,
   },
   sendButtonDisabled: {
     backgroundColor: 'rgba(255,255,255,0.2)',
