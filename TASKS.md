@@ -8,6 +8,7 @@
 - Stop after ~4 hours and report back.
 
 ## Backlog (priority)
+- [x] Add IAP store setup checklist + app config updates (bundle/package IDs) + EAS build config. (Added IAP_STORE_SETUP.md, set android.package in app.json, added eas.json.)
 - [x] Implement IAP subscription wiring for Stardust Gold. (Added SubscriptionProvider with expo-in-app-purchases scaffolding, wired Gold CTA + Oracle gate CTA to purchase, and updated UI for active/purchasing states.)
 - [x] Polish pass: subtle haptics + feedback states across onboarding/dashboard; refine onboarding→dashboard transition. (Added onboarding transition veil + replace nav, fade stack animation, haptic arrival cue, and pressed feedback on reading cards.)
 - [x] Polish pass: haptic hooks, refined button feedback, smoother scroll/entry animations. (Added haptics on key actions/focus, pressed states on CTAs, smooth auto-scroll for chat, and refreshed entry motion timing.)
