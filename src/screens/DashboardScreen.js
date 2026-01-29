@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -39,6 +39,7 @@ const dailyReadings = [
 
 export default function DashboardScreen({ navigation }) {
   const typography = useTypography();
+  const styles = useMemo(() => getStyles(typography), [typography]);
   const {
     products,
     isSubscribed,
@@ -290,7 +291,7 @@ export default function DashboardScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (typography) => StyleSheet.create({
   container: {
     flex: 1,
   },

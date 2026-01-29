@@ -6,6 +6,7 @@ import { useTypography } from '../constants/typography';
 
 export default function EnergyMeter({ level = 72, type = 'Nebula' }) {
   const typography = useTypography();
+  const styles = useMemo(() => getStyles(typography), [typography]);
   const pulseAnim = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
@@ -106,7 +107,7 @@ export default function EnergyMeter({ level = 72, type = 'Nebula' }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (typography) => StyleSheet.create({
   wrapper: {
     alignItems: 'center',
     marginBottom: spacing.lg,

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, TextInput, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -76,6 +76,7 @@ function MessageBubble({ message }) {
 
 export default function OracleChatScreen() {
   const typography = useTypography();
+  const styles = useMemo(() => getStyles(typography), [typography]);
   const { isSubscribed, isPurchasing, purchaseSubscription } = useSubscription();
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState('');
@@ -285,7 +286,7 @@ export default function OracleChatScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (typography) => StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: spacing.xl,

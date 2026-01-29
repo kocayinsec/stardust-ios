@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -13,6 +13,7 @@ const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
 export default function OnboardingScreen({ navigation }) {
   const typography = useTypography();
+  const styles = useMemo(() => getStyles(typography), [typography]);
   const [activeField, setActiveField] = useState(null);
   const [starSeedId, setStarSeedId] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -428,7 +429,7 @@ export default function OnboardingScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (typography) => StyleSheet.create({
   container: {
     flex: 1,
     padding: spacing.lg,
