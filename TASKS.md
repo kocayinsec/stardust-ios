@@ -32,3 +32,8 @@
 - [x] Add “AI Oracle Chat” screen (UI only, no backend yet). (Added OracleChat screen + navigation entry + CTA on dashboard)
 - [x] Add a subtle animated starfield background component (reuse on both screens). (Added reusable Starfield component with twinkle animation on Dashboard + Oracle Chat)
 - [x] Polish typography: add a serif title font + consistent spacing. (Introduced Georgia-based title font + typography helpers; aligned title/subtitle spacing and body text usage)
+
+## New Tasks
+- [ ] Confirm Oracle backend contract: base URL, auth scheme, `/v1/oracle/chat` payload fields, and response schema.
+- [ ] Decide on streaming vs. single-response delivery + add typing indicator if streaming.
+- [ ] Wire telemetry/logging for Oracle failures and latency metrics.
