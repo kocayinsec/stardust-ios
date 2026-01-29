@@ -3,6 +3,7 @@ import { Animated, StyleSheet } from 'react-native';
 
 export default function CosmicSealReveal({ progress }) {
   const spinAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.loop(
@@ -12,7 +13,22 @@ export default function CosmicSealReveal({ progress }) {
         useNativeDriver: true,
       })
     ).start();
-  }, [spinAnim]);
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 2400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0,
+          duration: 2400,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [pulseAnim, spinAnim]);
 
   const rotate = spinAnim.interpolate({
     inputRange: [0, 1],
@@ -22,6 +38,11 @@ export default function CosmicSealReveal({ progress }) {
   const scale = progress.interpolate({
     inputRange: [0, 1],
     outputRange: [0.9, 1],
+  });
+
+  const glowPulse = pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.7, 1],
   });
 
   return (
@@ -36,8 +57,16 @@ export default function CosmicSealReveal({ progress }) {
       ]}
     >
       <Animated.View style={[styles.ring, { transform: [{ rotate }] }]} />
-      <Animated.View style={[styles.ringGlow, { transform: [{ rotate: rotate }] }]} />
-      <Animated.View style={[styles.ringInner, { transform: [{ rotate: rotate }] }]} />
+      <Animated.View
+        style={[
+          styles.ringGlow,
+          {
+            opacity: glowPulse,
+            transform: [{ rotate }, { scale: glowPulse }],
+          },
+        ]}
+      />
+      <Animated.View style={[styles.ringInner, { transform: [{ rotate }] }]} />
     </Animated.View>
   );
 }

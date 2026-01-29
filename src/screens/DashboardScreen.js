@@ -4,7 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import Starfield from '../components/Starfield';
 import LivingNebula from '../components/LivingNebula';
-import { colors, spacing, typography } from '../constants/theme';
+import { colors, spacing } from '../constants/theme';
+import { useTypography } from '../constants/typography';
 
 const energy = {
   type: 'Nebula',
@@ -13,6 +14,8 @@ const energy = {
 };
 
 export default function DashboardScreen({ navigation }) {
+  const typography = useTypography();
+
   return (
     <LinearGradient
       colors={[colors.midnight, '#0D1230', '#1A0F2E', '#0B1235']}
@@ -89,14 +92,14 @@ const styles = StyleSheet.create({
     color: colors.gold,
     textAlign: 'center',
     marginBottom: spacing.xs,
-    ...typography.title,
+    ...typography.display,
   },
   subtitle: {
     color: colors.cyan,
     textAlign: 'center',
     marginBottom: spacing.lg,
     fontSize: 16,
-    ...typography.body,
+    ...typography.subtitle,
   },
   meterWrap: {
     alignItems: 'center',
@@ -168,7 +171,7 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: '700',
     letterSpacing: 0.6,
-    ...typography.body,
+    ...typography.button,
   },
   goldCard: {
     marginTop: spacing.lg,
@@ -196,6 +199,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     letterSpacing: 1.4,
     fontWeight: '700',
+    ...typography.label,
   },
   goldTitle: {
     color: colors.gold,
@@ -244,6 +248,6 @@ const styles = StyleSheet.create({
     color: colors.midnight,
     fontWeight: '700',
     letterSpacing: 0.6,
-    ...typography.body,
+    ...typography.button,
   },
 });

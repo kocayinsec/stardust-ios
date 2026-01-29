@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import Starfield from '../components/Starfield';
-import { colors, spacing, typography } from '../constants/theme';
+import { colors, spacing } from '../constants/theme';
+import { useTypography } from '../constants/typography';
 
 const messages = [
   {
@@ -24,6 +25,8 @@ const messages = [
 ];
 
 export default function OracleChatScreen() {
+  const typography = useTypography();
+
   return (
     <LinearGradient
       colors={[colors.midnight, '#0C1020', '#1D1233']}
@@ -85,12 +88,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.gold,
     marginBottom: spacing.xs,
-    ...typography.title,
+    ...typography.display,
   },
   subtitle: {
     color: colors.cyan,
     marginBottom: spacing.md,
-    ...typography.body,
+    ...typography.subtitle,
   },
   chat: {
     paddingBottom: spacing.lg,
@@ -149,6 +152,6 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: '700',
     letterSpacing: 0.4,
-    ...typography.body,
+    ...typography.button,
   },
 });

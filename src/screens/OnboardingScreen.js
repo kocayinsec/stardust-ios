@@ -5,11 +5,13 @@ import { BlurView } from 'expo-blur';
 import LivingNebula from '../components/LivingNebula';
 import ConstellationSigil from '../components/ConstellationSigil';
 import CosmicSealReveal from '../components/CosmicSealReveal';
-import { colors, spacing, typography } from '../constants/theme';
+import { colors, spacing } from '../constants/theme';
+import { useTypography } from '../constants/typography';
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
 export default function OnboardingScreen({ navigation }) {
+  const typography = useTypography();
   const [activeField, setActiveField] = useState(null);
   const [starSeedId, setStarSeedId] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -18,6 +20,9 @@ export default function OnboardingScreen({ navigation }) {
   const cardTranslate = useRef(new Animated.Value(18)).current;
   const cardOpacity = useRef(new Animated.Value(0)).current;
   const revealAnim = useRef(new Animated.Value(0)).current;
+  const sigilFloat = useRef(new Animated.Value(0)).current;
+  const buttonScale = useRef(new Animated.Value(1)).current;
+  const buttonGlow = useRef(new Animated.Value(0)).current;
   const navTimeout = useRef(null);
 
   useEffect(() => {
@@ -46,12 +51,47 @@ export default function OnboardingScreen({ navigation }) {
       }),
     ]).start();
 
+    const floatLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(sigilFloat, {
+          toValue: 1,
+          duration: 4200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(sigilFloat, {
+          toValue: 0,
+          duration: 4200,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    const glowLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(buttonGlow, {
+          toValue: 1,
+          duration: 2800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(buttonGlow, {
+          toValue: 0,
+          duration: 2800,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    floatLoop.start();
+    glowLoop.start();
+
     return () => {
+      floatLoop.stop();
+      glowLoop.stop();
       if (navTimeout.current) {
         clearTimeout(navTimeout.current);
       }
     };
-  }, [cardOpacity, cardTranslate, entryOpacity, entryTranslate]);
+  }, [buttonGlow, cardOpacity, cardTranslate, entryOpacity, entryTranslate, sigilFloat]);
 
   const handleGenerate = () => {
     if (isGenerating) return;
@@ -73,6 +113,24 @@ export default function OnboardingScreen({ navigation }) {
     }, 1400);
   };
 
+  const handlePressIn = () => {
+    Animated.spring(buttonScale, {
+      toValue: 0.98,
+      useNativeDriver: true,
+      speed: 20,
+      bounciness: 6,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(buttonScale, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 18,
+      bounciness: 6,
+    }).start();
+  };
+
   const revealStyle = {
     opacity: revealAnim,
     transform: [
@@ -86,6 +144,32 @@ export default function OnboardingScreen({ navigation }) {
         scale: revealAnim.interpolate({
           inputRange: [0, 1],
           outputRange: [0.96, 1],
+        }),
+      },
+    ],
+  };
+
+  const sigilFloatStyle = {
+    transform: [
+      {
+        translateY: sigilFloat.interpolate({
+          inputRange: [0, 1],
+          outputRange: [6, -6],
+        }),
+      },
+    ],
+  };
+
+  const buttonGlowStyle = {
+    opacity: buttonGlow.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.3, 0.75],
+    }),
+    transform: [
+      {
+        scale: buttonGlow.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.96, 1.08],
         }),
       },
     ],
@@ -113,9 +197,9 @@ export default function OnboardingScreen({ navigation }) {
       />
       <View style={styles.glowTop} />
       <View style={styles.glowBottom} />
-      <View style={styles.sigilWrap}>
+      <Animated.View style={[styles.sigilWrap, sigilFloatStyle]}>
         <ConstellationSigil size={200} tint="rgba(214, 198, 255, 0.9)" />
-      </View>
+      </Animated.View>
 
       <Animated.View
         style={[
@@ -128,6 +212,7 @@ export default function OnboardingScreen({ navigation }) {
       >
         <Text style={styles.title}>Stardust AI</Text>
         <Text style={styles.subtitle}>Reveal your cosmic identity</Text>
+        <Text style={styles.helper}>Attune your star map to unlock your oracle.</Text>
       </Animated.View>
 
       <Animated.View
@@ -143,6 +228,7 @@ export default function OnboardingScreen({ navigation }) {
               <TextInput
                 placeholder="Your name"
                 placeholderTextColor="#9FA3B2"
+                selectionColor={colors.cyan}
                 style={styles.input}
                 onFocus={() => setActiveField('name')}
                 onBlur={() => setActiveField(null)}
@@ -156,6 +242,7 @@ export default function OnboardingScreen({ navigation }) {
               <TextInput
                 placeholder="DD / MM / YYYY"
                 placeholderTextColor="#9FA3B2"
+                selectionColor={colors.cyan}
                 style={styles.input}
                 onFocus={() => setActiveField('date')}
                 onBlur={() => setActiveField(null)}
@@ -169,6 +256,7 @@ export default function OnboardingScreen({ navigation }) {
               <TextInput
                 placeholder="HH : MM"
                 placeholderTextColor="#9FA3B2"
+                selectionColor={colors.cyan}
                 style={styles.input}
                 onFocus={() => setActiveField('time')}
                 onBlur={() => setActiveField(null)}
@@ -182,6 +270,7 @@ export default function OnboardingScreen({ navigation }) {
               <TextInput
                 placeholder="City, Country"
                 placeholderTextColor="#9FA3B2"
+                selectionColor={colors.cyan}
                 style={styles.input}
                 onFocus={() => setActiveField('location')}
                 onBlur={() => setActiveField(null)}
@@ -189,15 +278,27 @@ export default function OnboardingScreen({ navigation }) {
             </BlurView>
           </View>
 
-          <TouchableOpacity
-            style={[styles.button, isGenerating && styles.buttonDisabled]}
-            onPress={handleGenerate}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.buttonText}>
-              {isGenerating ? 'Channeling...' : 'Generate Star Seed'}
-            </Text>
-          </TouchableOpacity>
+          <Animated.View style={[styles.buttonShell, { transform: [{ scale: buttonScale }] }]}>
+            <Animated.View style={[styles.buttonGlow, buttonGlowStyle]} />
+            <TouchableOpacity
+              style={[styles.button, isGenerating && styles.buttonDisabled]}
+              onPress={handleGenerate}
+              onPressIn={handlePressIn}
+              onPressOut={handlePressOut}
+              activeOpacity={0.9}
+            >
+              <LinearGradient
+                colors={['#7B2CBF', '#5B4BFF', '#36B6FF']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.buttonFill}
+              >
+                <Text style={styles.buttonText}>
+                  {isGenerating ? 'Channeling...' : 'Generate Star Seed'}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </Animated.View>
 
           {starSeedId && (
             <Animated.View style={[styles.revealCard, revealStyle]}>
@@ -250,17 +351,29 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   title: {
-    fontSize: 36,
+    fontSize: 38,
     fontWeight: '700',
     color: colors.gold,
     textAlign: 'center',
     marginBottom: spacing.xs,
-    ...typography.title,
+    textShadowColor: 'rgba(255, 215, 180, 0.35)',
+    textShadowOffset: { width: 0, height: 6 },
+    textShadowRadius: 18,
+    ...typography.display,
   },
   subtitle: {
     color: colors.cyan,
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: 15,
+    textTransform: 'uppercase',
+    marginBottom: spacing.xs,
+    ...typography.subtitle,
+  },
+  helper: {
+    color: 'rgba(235, 238, 255, 0.8)',
+    textAlign: 'center',
+    fontSize: 13,
+    lineHeight: 18,
     ...typography.body,
   },
   card: {
@@ -276,12 +389,11 @@ const styles = StyleSheet.create({
   },
   label: {
     color: colors.gold,
-    fontSize: 12,
+    fontSize: 11,
     textTransform: 'uppercase',
-    letterSpacing: 1.5,
     marginTop: spacing.md,
     marginBottom: spacing.xs,
-    ...typography.body,
+    ...typography.label,
   },
   inputWrapper: {
     borderRadius: 14,
@@ -304,26 +416,47 @@ const styles = StyleSheet.create({
   input: {
     padding: spacing.sm,
     color: colors.white,
+    fontSize: 15,
+    letterSpacing: 0.4,
     ...typography.body,
   },
-  button: {
+  buttonShell: {
     marginTop: spacing.lg,
-    backgroundColor: colors.purple,
-    paddingVertical: spacing.sm,
-    borderRadius: 14,
+    alignSelf: 'stretch',
+  },
+  buttonGlow: {
+    position: 'absolute',
+    left: -20,
+    right: -20,
+    top: -14,
+    bottom: -14,
+    borderRadius: 26,
+    backgroundColor: 'rgba(110, 160, 255, 0.18)',
+  },
+  button: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    shadowColor: 'rgba(110, 140, 255, 0.6)',
+    shadowOpacity: 0.5,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    width: '100%',
+  },
+  buttonFill: {
+    paddingVertical: spacing.sm + 2,
+    borderRadius: 16,
     alignItems: 'center',
-    shadowColor: colors.purple,
-    shadowOpacity: 0.45,
-    shadowRadius: 14,
+    width: '100%',
   },
   buttonDisabled: {
-    opacity: 0.75,
+    opacity: 0.7,
   },
   buttonText: {
     color: colors.white,
     fontWeight: '700',
-    letterSpacing: 0.6,
-    ...typography.body,
+    ...typography.button,
   },
   revealCard: {
     marginTop: spacing.md,
@@ -337,11 +470,10 @@ const styles = StyleSheet.create({
   },
   revealLabel: {
     color: colors.cyan,
-    fontSize: 12,
-    letterSpacing: 1.4,
+    fontSize: 11,
     textTransform: 'uppercase',
     marginBottom: spacing.xs,
-    ...typography.body,
+    ...typography.label,
   },
   revealValue: {
     color: colors.white,

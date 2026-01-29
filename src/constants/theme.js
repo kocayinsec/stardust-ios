@@ -13,18 +13,3 @@ export const spacing = {
   lg: 24,
   xl: 32,
 };
-
-export const fonts = {
-  title: 'Georgia',
-  body: 'System',
-};
-
-export const typography = {
-  title: {
-    fontFamily: fonts.title,
-    letterSpacing: 0.5,
-  },
-  body: {
-    fontFamily: fonts.body,
-  },
-};
