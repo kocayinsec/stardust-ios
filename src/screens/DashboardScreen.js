@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import Starfield from '../components/Starfield';
+import LivingNebula from '../components/LivingNebula';
 import { colors, spacing, typography } from '../constants/theme';
 
 const energy = {
@@ -14,10 +15,11 @@ const energy = {
 export default function DashboardScreen({ navigation }) {
   return (
     <LinearGradient
-      colors={[colors.midnight, '#0E1222', '#1B0F2C']}
+      colors={[colors.midnight, '#0D1230', '#1A0F2E', '#0B1235']}
       style={styles.container}
     >
-      <Starfield />
+      <LivingNebula />
+      <Starfield density={60} color="rgba(255,255,255,0.75)" />
       <Text style={styles.title}>Galactic Energy</Text>
       <Text style={styles.subtitle}>Your cosmic momentum for today</Text>
 
@@ -74,22 +76,22 @@ const styles = StyleSheet.create({
     height: 220,
     borderRadius: 110,
     borderWidth: 2,
-    borderColor: colors.purple,
+    borderColor: 'rgba(155, 110, 255, 0.9)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.purple,
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
+    shadowColor: 'rgba(130, 90, 255, 0.9)',
+    shadowOpacity: 0.55,
+    shadowRadius: 24,
   },
   innerRing: {
     width: 170,
     height: 170,
     borderRadius: 85,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: 'rgba(255,255,255,0.28)',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   energyValue: {
     fontSize: 36,
@@ -103,11 +105,15 @@ const styles = StyleSheet.create({
     ...typography.body,
   },
   card: {
-    borderRadius: 16,
+    borderRadius: 18,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    backgroundColor: 'rgba(11,15,25,0.6)',
+    borderColor: 'rgba(255,255,255,0.16)',
+    backgroundColor: 'rgba(10,14,26,0.62)',
+    shadowColor: 'rgba(80, 70, 160, 0.6)',
+    shadowOpacity: 0.4,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 12 },
   },
   cardTitle: {
     color: colors.gold,

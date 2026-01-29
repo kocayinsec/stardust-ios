@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import LivingNebula from '../components/LivingNebula';
+import ConstellationSigil from '../components/ConstellationSigil';
+import CosmicSealReveal from '../components/CosmicSealReveal';
 import { colors, spacing, typography } from '../constants/theme';
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
@@ -96,19 +99,23 @@ export default function OnboardingScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#05060F', '#0B1230', '#1B1240', '#3A145B', '#111D4B']}
+        colors={['#05060F', '#0B1436', '#1B0F3D', '#3C165E', '#0E1230']}
         start={{ x: 0.1, y: 0.1 }}
         end={{ x: 0.9, y: 0.9 }}
         style={StyleSheet.absoluteFillObject}
       />
+      <LivingNebula />
       <LinearGradient
-        colors={['rgba(255,255,255,0.08)', 'rgba(26,16,70,0.65)', 'rgba(5,6,15,0.9)']}
+        colors={['rgba(255,255,255,0.06)', 'rgba(26,16,70,0.68)', 'rgba(5,6,15,0.92)']}
         start={{ x: 0.2, y: 0.1 }}
         end={{ x: 0.8, y: 0.95 }}
         style={styles.gradientOverlay}
       />
       <View style={styles.glowTop} />
       <View style={styles.glowBottom} />
+      <View style={styles.sigilWrap}>
+        <ConstellationSigil size={200} tint="rgba(214, 198, 255, 0.9)" />
+      </View>
 
       <Animated.View
         style={[
@@ -194,6 +201,7 @@ export default function OnboardingScreen({ navigation }) {
 
           {starSeedId && (
             <Animated.View style={[styles.revealCard, revealStyle]}>
+              <CosmicSealReveal progress={revealAnim} />
               <Text style={styles.revealLabel}>Star Seed ID</Text>
               <Text style={styles.revealValue}>{starSeedId}</Text>
             </Animated.View>
@@ -230,6 +238,12 @@ const styles = StyleSheet.create({
     height: 300,
     borderRadius: 150,
     backgroundColor: 'rgba(64, 181, 255, 0.25)',
+  },
+  sigilWrap: {
+    position: 'absolute',
+    top: 70,
+    alignSelf: 'center',
+    opacity: 0.75,
   },
   header: {
     alignItems: 'center',
@@ -319,6 +333,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.22)',
     backgroundColor: 'rgba(15,18,35,0.6)',
+    overflow: 'hidden',
   },
   revealLabel: {
     color: colors.cyan,
