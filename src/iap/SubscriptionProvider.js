@@ -1,6 +1,5 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform } from 'react-native';
-import * as InAppPurchases from 'expo-in-app-purchases';
 
 const SubscriptionContext = createContext(null);
 
@@ -12,6 +11,15 @@ const subscriptionProductIds = Platform.select({
 
 const isSubscriptionProduct = (productId) => subscriptionProductIds.includes(productId);
 
+const loadInAppPurchasesModule = async () => {
+  try {
+    const mod = await import('expo-in-app-purchases');
+    return mod;
+  } catch (error) {
+    return null;
+  }
+};
+
 export function SubscriptionProvider({ children }) {
   const [products, setProducts] = useState([]);
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -19,10 +27,12 @@ export function SubscriptionProvider({ children }) {
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [lastError, setLastError] = useState(null);
   const [lastPurchase, setLastPurchase] = useState(null);
+  const iapRef = useRef(null);
 
   const loadProducts = useCallback(async () => {
-    const { responseCode, results } = await InAppPurchases.getProductsAsync(subscriptionProductIds);
-    if (responseCode === InAppPurchases.IAPResponseCode.OK) {
+    if (!iapRef.current) return;
+    const { responseCode, results } = await iapRef.current.getProductsAsync(subscriptionProductIds);
+    if (responseCode === iapRef.current.IAPResponseCode.OK) {
       setProducts(results ?? []);
     }
   }, []);
@@ -35,8 +45,9 @@ export function SubscriptionProvider({ children }) {
   }, []);
 
   const restorePurchases = useCallback(async () => {
-    const { responseCode, results } = await InAppPurchases.getPurchaseHistoryAsync();
-    if (responseCode === InAppPurchases.IAPResponseCode.OK) {
+    if (!iapRef.current) return;
+    const { responseCode, results } = await iapRef.current.getPurchaseHistoryAsync();
+    if (responseCode === iapRef.current.IAPResponseCode.OK) {
       updateSubscriptionStatus(results ?? []);
     }
   }, [updateSubscriptionStatus]);
@@ -50,24 +61,32 @@ export function SubscriptionProvider({ children }) {
         return;
       }
 
+      const module = await loadInAppPurchasesModule();
+      if (!module?.connectAsync) {
+        setIsConnecting(false);
+        return;
+      }
+
+      iapRef.current = module;
+
       try {
-        const { responseCode } = await InAppPurchases.connectAsync();
+        const { responseCode } = await iapRef.current.connectAsync();
         if (!isMounted) return;
 
-        if (responseCode === InAppPurchases.IAPResponseCode.OK) {
-          InAppPurchases.setPurchaseListener(async ({ responseCode, results, errorCode }) => {
-            if (responseCode === InAppPurchases.IAPResponseCode.OK) {
+        if (responseCode === iapRef.current.IAPResponseCode.OK) {
+          iapRef.current.setPurchaseListener(async ({ responseCode, results, errorCode }) => {
+            if (responseCode === iapRef.current.IAPResponseCode.OK) {
               if (results?.length) {
                 setLastError(null);
                 updateSubscriptionStatus(results);
 
                 for (const purchase of results) {
                   setLastPurchase(purchase);
-                  await InAppPurchases.finishTransactionAsync(purchase, false);
+                  await iapRef.current.finishTransactionAsync(purchase, false);
                 }
               }
               setIsPurchasing(false);
-            } else if (responseCode === InAppPurchases.IAPResponseCode.USER_CANCELED) {
+            } else if (responseCode === iapRef.current.IAPResponseCode.USER_CANCELED) {
               setIsPurchasing(false);
             } else {
               setLastError(errorCode ?? 'purchase_failed');
@@ -93,16 +112,16 @@ export function SubscriptionProvider({ children }) {
 
     return () => {
       isMounted = false;
-      InAppPurchases.disconnectAsync().catch(() => null);
+      iapRef.current?.disconnectAsync?.().catch(() => null);
     };
   }, [loadProducts, restorePurchases, updateSubscriptionStatus]);
 
   const purchaseSubscription = useCallback(async () => {
-    if (!subscriptionProductIds.length) return;
+    if (!subscriptionProductIds.length || !iapRef.current) return;
     setIsPurchasing(true);
     setLastError(null);
     try {
-      await InAppPurchases.purchaseItemAsync(subscriptionProductIds[0]);
+      await iapRef.current.purchaseItemAsync(subscriptionProductIds[0]);
     } catch (error) {
       setIsPurchasing(false);
       setLastError(error?.message ?? 'purchase_failed');
