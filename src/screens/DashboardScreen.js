@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 import Starfield from '../components/Starfield';
 import LivingNebula from '../components/LivingNebula';
 import EnergyMeter from '../components/EnergyMeter';
@@ -37,6 +38,130 @@ const dailyReadings = [
 
 export default function DashboardScreen({ navigation }) {
   const typography = useTypography();
+  const headerAnim = useRef(new Animated.Value(0)).current;
+  const readingsAnim = useRef(new Animated.Value(0)).current;
+  const oracleAnim = useRef(new Animated.Value(0)).current;
+  const goldAnim = useRef(new Animated.Value(0)).current;
+  const cardFloat = useRef(new Animated.Value(0)).current;
+  const buttonGlow = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.stagger(140, [
+      Animated.timing(headerAnim, {
+        toValue: 1,
+        duration: 700,
+        useNativeDriver: true,
+      }),
+      Animated.timing(readingsAnim, {
+        toValue: 1,
+        duration: 700,
+        useNativeDriver: true,
+      }),
+      Animated.timing(oracleAnim, {
+        toValue: 1,
+        duration: 700,
+        useNativeDriver: true,
+      }),
+      Animated.timing(goldAnim, {
+        toValue: 1,
+        duration: 700,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    const floatLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(cardFloat, {
+          toValue: 1,
+          duration: 5000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cardFloat, {
+          toValue: 0,
+          duration: 5000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    const glowLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(buttonGlow, {
+          toValue: 1,
+          duration: 2600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(buttonGlow, {
+          toValue: 0,
+          duration: 2600,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    floatLoop.start();
+    glowLoop.start();
+
+    return () => {
+      floatLoop.stop();
+      glowLoop.stop();
+    };
+  }, [buttonGlow, cardFloat, goldAnim, headerAnim, oracleAnim, readingsAnim]);
+
+  const floatStyle = {
+    transform: [
+      {
+        translateY: cardFloat.interpolate({
+          inputRange: [0, 1],
+          outputRange: [6, -6],
+        }),
+      },
+    ],
+  };
+
+  const glowStyle = {
+    opacity: buttonGlow.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.25, 0.65],
+    }),
+    transform: [
+      {
+        scale: buttonGlow.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.95, 1.08],
+        }),
+      },
+    ],
+  };
+
+  const entranceStyle = (anim) => ({
+    opacity: anim,
+    transform: [
+      {
+        translateY: anim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [18, 0],
+        }),
+      },
+    ],
+  });
+
+  const triggerSelectionHaptic = () => {
+    Haptics.selectionAsync().catch(() => null);
+  };
+
+  const triggerImpactHaptic = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => null);
+  };
+
+  const handleOraclePress = () => {
+    triggerImpactHaptic();
+    navigation.navigate('OracleChat');
+  };
+
+  const handleGoldPress = () => {
+    triggerImpactHaptic();
+  };
 
   return (
     <LinearGradient
@@ -45,67 +170,85 @@ export default function DashboardScreen({ navigation }) {
     >
       <LivingNebula />
       <Starfield density={60} color="rgba(255,255,255,0.75)" />
-      <ScrollView
+      <Animated.ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Galactic Energy</Text>
-        <Text style={styles.subtitle}>Your cosmic momentum for today</Text>
+        <Animated.View style={entranceStyle(headerAnim)}>
+          <Text style={styles.title}>Galactic Energy</Text>
+          <Text style={styles.subtitle}>Your cosmic momentum for today</Text>
+          <EnergyMeter level={energy.level} type={energy.type} />
+        </Animated.View>
 
-        <EnergyMeter level={energy.level} type={energy.type} />
+        <Animated.View style={entranceStyle(readingsAnim)}>
+          <View style={styles.readingHeader}>
+            <Text style={styles.readingTitle}>Daily Readings</Text>
+            <Text style={styles.readingSubtitle}>Arcane checkpoints aligned to your orbit</Text>
+          </View>
+          <View style={styles.readingGrid}>
+            {dailyReadings.map((reading) => (
+              <LinearGradient
+                key={reading.id}
+                colors={['rgba(111, 88, 206, 0.45)', 'rgba(18, 22, 45, 0.8)']}
+                style={styles.readingCard}
+              >
+                <Text style={styles.readingTime}>{reading.time}</Text>
+                <Text style={styles.readingName}>{reading.title}</Text>
+                <Text style={styles.readingDetail}>{reading.detail}</Text>
+              </LinearGradient>
+            ))}
+          </View>
+        </Animated.View>
 
-        <View style={styles.readingHeader}>
-          <Text style={styles.readingTitle}>Daily Readings</Text>
-          <Text style={styles.readingSubtitle}>Arcane checkpoints aligned to your orbit</Text>
-        </View>
-        <View style={styles.readingGrid}>
-          {dailyReadings.map((reading) => (
-            <LinearGradient
-              key={reading.id}
-              colors={['rgba(111, 88, 206, 0.45)', 'rgba(18, 22, 45, 0.8)']}
-              style={styles.readingCard}
-            >
-              <Text style={styles.readingTime}>{reading.time}</Text>
-              <Text style={styles.readingName}>{reading.title}</Text>
-              <Text style={styles.readingDetail}>{reading.detail}</Text>
-            </LinearGradient>
-          ))}
-        </View>
+        <Animated.View style={[entranceStyle(oracleAnim), floatStyle]}>
+          <BlurView intensity={25} tint="dark" style={styles.card}>
+            <Text style={styles.cardTitle}>Oracle Whisper</Text>
+            <Text style={styles.cardText}>{energy.description}</Text>
+            <View style={styles.oracleButtonWrap}>
+              <Animated.View pointerEvents="none" style={[styles.oracleButtonGlow, glowStyle]} />
+              <Pressable
+                style={({ pressed }) => [styles.oracleButton, pressed && styles.buttonPressed]}
+                onPress={handleOraclePress}
+                onPressIn={triggerSelectionHaptic}
+              >
+                <Text style={styles.oracleButtonText}>Ask the Oracle</Text>
+              </Pressable>
+            </View>
+          </BlurView>
+        </Animated.View>
 
-        <BlurView intensity={25} tint="dark" style={styles.card}>
-          <Text style={styles.cardTitle}>Oracle Whisper</Text>
-          <Text style={styles.cardText}>{energy.description}</Text>
-          <TouchableOpacity
-            style={styles.oracleButton}
-            onPress={() => navigation.navigate('OracleChat')}
+        <Animated.View style={[entranceStyle(goldAnim), floatStyle]}>
+          <LinearGradient
+            colors={['rgba(255,214,145,0.32)', 'rgba(255,171,82,0.18)', 'rgba(71,22,109,0.64)']}
+            style={styles.goldCard}
           >
-            <Text style={styles.oracleButtonText}>Ask the Oracle</Text>
-          </TouchableOpacity>
-        </BlurView>
-
-        <LinearGradient
-          colors={['rgba(255,214,145,0.32)', 'rgba(255,171,82,0.18)', 'rgba(71,22,109,0.64)']}
-          style={styles.goldCard}
-        >
-          <View style={styles.goldBadge}>
-            <Text style={styles.goldBadgeText}>STARDUST GOLD</Text>
-          </View>
-          <Text style={styles.goldTitle}>Ascend to Premium Rituals</Text>
-          <Text style={styles.goldSubtitle}>Private forecasts, deeper prophecies, and elite cosmic perks.</Text>
-          <View style={styles.goldPerks}>
-            <Text style={styles.goldPerkItem}>• Daily destiny readings + custom sigils</Text>
-            <Text style={styles.goldPerkItem}>• Priority Oracle sessions (instant replies)</Text>
-            <Text style={styles.goldPerkItem}>• Monthly astral gifts + rewards</Text>
-          </View>
-          <View style={styles.goldPriceRow}>
-            <Text style={styles.goldPrice}>$19</Text>
-            <Text style={styles.goldPriceDetail}>/month · Cancel anytime</Text>
-          </View>
-          <TouchableOpacity style={styles.goldButton}>
-            <Text style={styles.goldButtonText}>Unlock Gold</Text>
-          </TouchableOpacity>
-        </LinearGradient>
-      </ScrollView>
+            <View style={styles.goldBadge}>
+              <Text style={styles.goldBadgeText}>STARDUST GOLD</Text>
+            </View>
+            <Text style={styles.goldTitle}>Ascend to Premium Rituals</Text>
+            <Text style={styles.goldSubtitle}>Private forecasts, deeper prophecies, and elite cosmic perks.</Text>
+            <View style={styles.goldPerks}>
+              <Text style={styles.goldPerkItem}>• Daily destiny readings + custom sigils</Text>
+              <Text style={styles.goldPerkItem}>• Priority Oracle sessions (instant replies)</Text>
+              <Text style={styles.goldPerkItem}>• Monthly astral gifts + rewards</Text>
+            </View>
+            <View style={styles.goldPriceRow}>
+              <Text style={styles.goldPrice}>$19</Text>
+              <Text style={styles.goldPriceDetail}>/month · Cancel anytime</Text>
+            </View>
+            <View style={styles.goldButtonWrap}>
+              <Animated.View pointerEvents="none" style={[styles.goldButtonGlow, glowStyle]} />
+              <Pressable
+                style={({ pressed }) => [styles.goldButton, pressed && styles.goldButtonPressed]}
+                onPress={handleGoldPress}
+                onPressIn={triggerSelectionHaptic}
+              >
+                <Text style={styles.goldButtonText}>Unlock Gold</Text>
+              </Pressable>
+            </View>
+          </LinearGradient>
+        </Animated.View>
+      </Animated.ScrollView>
     </LinearGradient>
   );
 }
@@ -158,11 +301,11 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
-    shadowColor: 'rgba(110, 80, 200, 0.5)',
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 10 },
+    borderColor: 'rgba(255,255,255,0.18)',
+    shadowColor: 'rgba(110, 80, 200, 0.55)',
+    shadowOpacity: 0.4,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 12 },
   },
   readingTime: {
     color: 'rgba(180, 200, 255, 0.9)',
@@ -185,15 +328,16 @@ const styles = StyleSheet.create({
     ...typography.body,
   },
   card: {
-    borderRadius: 18,
+    borderRadius: 20,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.16)',
-    backgroundColor: 'rgba(10,14,26,0.62)',
-    shadowColor: 'rgba(80, 70, 160, 0.6)',
-    shadowOpacity: 0.4,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 12 },
+    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(10,14,26,0.65)',
+    shadowColor: 'rgba(80, 70, 160, 0.65)',
+    shadowOpacity: 0.45,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 14 },
+    overflow: 'hidden',
   },
   cardTitle: {
     color: colors.gold,
@@ -206,12 +350,34 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     ...typography.body,
   },
-  oracleButton: {
+  oracleButtonWrap: {
     marginTop: spacing.md,
+  },
+  oracleButtonGlow: {
+    position: 'absolute',
+    left: -14,
+    right: -14,
+    top: -12,
+    bottom: -12,
+    borderRadius: 16,
+    backgroundColor: 'rgba(109, 140, 255, 0.2)',
+  },
+  oracleButton: {
     backgroundColor: colors.purple,
     paddingVertical: spacing.sm,
     borderRadius: 12,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    shadowColor: 'rgba(120, 140, 255, 0.6)',
+    shadowOpacity: 0.4,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+  },
+  buttonPressed: {
+    transform: [{ scale: 0.98 }],
+    shadowOpacity: 0.6,
+    borderColor: 'rgba(255,255,255,0.35)',
   },
   oracleButtonText: {
     color: colors.white,
@@ -222,13 +388,14 @@ const styles = StyleSheet.create({
   goldCard: {
     marginTop: spacing.lg,
     padding: spacing.lg,
-    borderRadius: 22,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255,226,170,0.35)',
-    shadowColor: 'rgba(255, 198, 120, 0.6)',
-    shadowOpacity: 0.35,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 12 },
+    borderColor: 'rgba(255,226,170,0.4)',
+    shadowColor: 'rgba(255, 198, 120, 0.65)',
+    shadowOpacity: 0.4,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 14 },
+    overflow: 'hidden',
   },
   goldBadge: {
     alignSelf: 'flex-start',
@@ -284,11 +451,34 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.72)',
     ...typography.body,
   },
+  goldButtonWrap: {
+    marginTop: spacing.xs,
+  },
+  goldButtonGlow: {
+    position: 'absolute',
+    left: -14,
+    right: -14,
+    top: -12,
+    bottom: -12,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 218, 145, 0.32)',
+  },
   goldButton: {
     backgroundColor: colors.gold,
     paddingVertical: spacing.sm,
     borderRadius: 14,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
+    shadowColor: 'rgba(255, 214, 140, 0.7)',
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+  },
+  goldButtonPressed: {
+    transform: [{ scale: 0.98 }],
+    shadowOpacity: 0.65,
+    borderColor: 'rgba(255,255,255,0.5)',
   },
   goldButtonText: {
     color: colors.midnight,

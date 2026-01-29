@@ -1,7 +1,8 @@
-import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Pressable, TextInput, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 import Starfield from '../components/Starfield';
 import { colors, spacing } from '../constants/theme';
 import { useTypography } from '../constants/typography';
@@ -25,6 +26,53 @@ const initialMessages = [
   },
 ];
 
+function MessageBubble({ message }) {
+  const entrance = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(entrance, {
+      toValue: 1,
+      duration: 420,
+      useNativeDriver: true,
+    }).start();
+  }, [entrance]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.messageBubble,
+        message.type === 'oracle' ? styles.oracleBubble : styles.userBubble,
+        {
+          opacity: entrance,
+          transform: [
+            {
+              translateY: entrance.interpolate({
+                inputRange: [0, 1],
+                outputRange: [10, 0],
+              }),
+            },
+            {
+              scale: entrance.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.98, 1],
+              }),
+            },
+          ],
+        },
+      ]}
+    >
+      <Text
+        style={[
+          styles.messageText,
+          message.type === 'oracle' ? styles.oracleText : styles.userText,
+        ]}
+      >
+        {message.text}
+      </Text>
+    </Animated.View>
+  );
+}
+
 export default function OracleChatScreen() {
   const typography = useTypography();
   const [messages, setMessages] = useState(initialMessages);
@@ -32,6 +80,62 @@ export default function OracleChatScreen() {
   const [remainingQuestions, setRemainingQuestions] = useState(dailyLimit);
   const [lastQuestionDay, setLastQuestionDay] = useState(new Date().toDateString());
   const responseIndex = useRef(0);
+  const headerAnim = useRef(new Animated.Value(0)).current;
+  const inputGlow = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(headerAnim, {
+      toValue: 1,
+      duration: 650,
+      useNativeDriver: true,
+    }).start();
+
+    const glowLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(inputGlow, {
+          toValue: 1,
+          duration: 2800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(inputGlow, {
+          toValue: 0,
+          duration: 2800,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    glowLoop.start();
+
+    return () => glowLoop.stop();
+  }, [headerAnim, inputGlow]);
+
+  const headerStyle = {
+    opacity: headerAnim,
+    transform: [
+      {
+        translateY: headerAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [18, 0],
+        }),
+      },
+    ],
+  };
+
+  const inputGlowStyle = {
+    opacity: inputGlow.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.15, 0.5],
+    }),
+    transform: [
+      {
+        scale: inputGlow.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.96, 1.05],
+        }),
+      },
+    ],
+  };
 
   const maybeResetDailyLimit = () => {
     const today = new Date().toDateString();
@@ -80,7 +184,7 @@ export default function OracleChatScreen() {
       style={styles.container}
     >
       <Starfield />
-      <View style={styles.header}>
+      <Animated.View style={[styles.header, headerStyle]}>
         <Text style={styles.title}>AI Oracle</Text>
         <Text style={styles.subtitle}>A private channel to the stars</Text>
         <View style={styles.limitPill}>
@@ -90,26 +194,11 @@ export default function OracleChatScreen() {
               : `${remainingQuestions} free questions left today`}
           </Text>
         </View>
-      </View>
+      </Animated.View>
 
       <ScrollView contentContainerStyle={styles.chat} showsVerticalScrollIndicator={false}>
         {messages.map((message) => (
-          <View
-            key={message.id}
-            style={[
-              styles.messageBubble,
-              message.type === 'oracle' ? styles.oracleBubble : styles.userBubble,
-            ]}
-          >
-            <Text
-              style={[
-                styles.messageText,
-                message.type === 'oracle' ? styles.oracleText : styles.userText,
-              ]}
-            >
-              {message.text}
-            </Text>
-          </View>
+          <MessageBubble key={message.id} message={message} />
         ))}
 
         {limitReached && (
@@ -127,6 +216,7 @@ export default function OracleChatScreen() {
       </ScrollView>
 
       <BlurView intensity={30} tint="dark" style={styles.inputWrap}>
+        <Animated.View pointerEvents="none" style={[styles.inputGlow, inputGlowStyle]} />
         <TextInput
           placeholder="Ask the Oracle..."
           placeholderTextColor="rgba(255,255,255,0.6)"
@@ -170,13 +260,17 @@ const styles = StyleSheet.create({
   },
   limitPill: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,215,0,0.12)',
+    backgroundColor: 'rgba(255,215,0,0.14)',
     borderRadius: 999,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     borderWidth: 1,
-    borderColor: 'rgba(255,215,0,0.3)',
+    borderColor: 'rgba(255,215,0,0.35)',
     marginBottom: spacing.md,
+    shadowColor: 'rgba(255, 215, 140, 0.6)',
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
   },
   limitText: {
     color: colors.gold,
@@ -224,6 +318,10 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     borderRadius: 16,
     marginBottom: spacing.md,
+    shadowColor: 'rgba(20, 25, 60, 0.6)',
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
   },
   oracleBubble: {
     alignSelf: 'flex-start',
@@ -254,8 +352,18 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: spacing.sm,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.16)',
     marginBottom: spacing.lg,
+    overflow: 'hidden',
+  },
+  inputGlow: {
+    position: 'absolute',
+    left: -30,
+    right: -30,
+    top: -20,
+    bottom: -20,
+    borderRadius: 30,
+    backgroundColor: 'rgba(97, 143, 255, 0.22)',
   },
   input: {
     flex: 1,
@@ -268,6 +376,12 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.md,
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    shadowColor: 'rgba(110, 130, 255, 0.6)',
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
   },
   sendButtonDisabled: {
     backgroundColor: 'rgba(255,255,255,0.2)',

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 import LivingNebula from '../components/LivingNebula';
 import ConstellationSigil from '../components/ConstellationSigil';
 import CosmicSealReveal from '../components/CosmicSealReveal';
@@ -15,12 +16,15 @@ export default function OnboardingScreen({ navigation }) {
   const [activeField, setActiveField] = useState(null);
   const [starSeedId, setStarSeedId] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isButtonPressed, setIsButtonPressed] = useState(false);
   const entryOpacity = useRef(new Animated.Value(0)).current;
   const entryTranslate = useRef(new Animated.Value(28)).current;
   const cardTranslate = useRef(new Animated.Value(18)).current;
   const cardOpacity = useRef(new Animated.Value(0)).current;
   const revealAnim = useRef(new Animated.Value(0)).current;
   const sigilFloat = useRef(new Animated.Value(0)).current;
+  const cardFloat = useRef(new Animated.Value(0)).current;
+  const cardGlow = useRef(new Animated.Value(0)).current;
   const buttonScale = useRef(new Animated.Value(1)).current;
   const buttonGlow = useRef(new Animated.Value(0)).current;
   const navTimeout = useRef(null);
@@ -66,6 +70,21 @@ export default function OnboardingScreen({ navigation }) {
       ])
     );
 
+    const cardFloatLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(cardFloat, {
+          toValue: 1,
+          duration: 5200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cardFloat, {
+          toValue: 0,
+          duration: 5200,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
     const glowLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(buttonGlow, {
@@ -81,20 +100,52 @@ export default function OnboardingScreen({ navigation }) {
       ])
     );
 
+    const cardGlowLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(cardGlow, {
+          toValue: 1,
+          duration: 3600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cardGlow, {
+          toValue: 0,
+          duration: 3600,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
     floatLoop.start();
+    cardFloatLoop.start();
     glowLoop.start();
+    cardGlowLoop.start();
 
     return () => {
       floatLoop.stop();
+      cardFloatLoop.stop();
       glowLoop.stop();
+      cardGlowLoop.stop();
       if (navTimeout.current) {
         clearTimeout(navTimeout.current);
       }
     };
-  }, [buttonGlow, cardOpacity, cardTranslate, entryOpacity, entryTranslate, sigilFloat]);
+  }, [buttonGlow, cardFloat, cardGlow, cardOpacity, cardTranslate, entryOpacity, entryTranslate, sigilFloat]);
+
+  const triggerSelectionHaptic = () => {
+    Haptics.selectionAsync().catch(() => null);
+  };
+
+  const triggerImpactHaptic = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => null);
+  };
+
+  const triggerSuccessHaptic = () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => null);
+  };
 
   const handleGenerate = () => {
     if (isGenerating) return;
+    triggerImpactHaptic();
     setIsGenerating(true);
     const nextId = `SS-${Math.random().toString(36).slice(2, 6).toUpperCase()}-${Date.now()
       .toString()
@@ -105,7 +156,7 @@ export default function OnboardingScreen({ navigation }) {
       toValue: 1,
       duration: 700,
       useNativeDriver: true,
-    }).start();
+    }).start(() => triggerSuccessHaptic());
 
     navTimeout.current = setTimeout(() => {
       setIsGenerating(false);
@@ -114,6 +165,8 @@ export default function OnboardingScreen({ navigation }) {
   };
 
   const handlePressIn = () => {
+    setIsButtonPressed(true);
+    triggerSelectionHaptic();
     Animated.spring(buttonScale, {
       toValue: 0.98,
       useNativeDriver: true,
@@ -123,12 +176,18 @@ export default function OnboardingScreen({ navigation }) {
   };
 
   const handlePressOut = () => {
+    setIsButtonPressed(false);
     Animated.spring(buttonScale, {
       toValue: 1,
       useNativeDriver: true,
       speed: 18,
       bounciness: 6,
     }).start();
+  };
+
+  const handleFieldFocus = (field) => {
+    setActiveField(field);
+    triggerSelectionHaptic();
   };
 
   const revealStyle = {
@@ -155,6 +214,32 @@ export default function OnboardingScreen({ navigation }) {
         translateY: sigilFloat.interpolate({
           inputRange: [0, 1],
           outputRange: [6, -6],
+        }),
+      },
+    ],
+  };
+
+  const cardFloatStyle = {
+    transform: [
+      {
+        translateY: cardFloat.interpolate({
+          inputRange: [0, 1],
+          outputRange: [6, -6],
+        }),
+      },
+    ],
+  };
+
+  const cardGlowStyle = {
+    opacity: cardGlow.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.2, 0.6],
+    }),
+    transform: [
+      {
+        scale: cardGlow.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.96, 1.06],
         }),
       },
     ],
@@ -226,8 +311,10 @@ export default function OnboardingScreen({ navigation }) {
           transform: [{ translateY: cardTranslate }],
         }}
       >
-        <AnimatedBlurView intensity={28} tint="dark" style={styles.card}>
-          <Text style={styles.label}>Name</Text>
+        <Animated.View style={cardFloatStyle}>
+          <AnimatedBlurView intensity={28} tint="dark" style={styles.card}>
+            <Animated.View pointerEvents="none" style={[styles.cardHalo, cardGlowStyle]} />
+            <Text style={styles.label}>Name</Text>
           <View style={inputWrapperStyle('name')}>
             <BlurView intensity={16} tint="dark" style={styles.inputBlur}>
               <TextInput
@@ -235,7 +322,7 @@ export default function OnboardingScreen({ navigation }) {
                 placeholderTextColor="#9FA3B2"
                 selectionColor={colors.cyan}
                 style={styles.input}
-                onFocus={() => setActiveField('name')}
+                onFocus={() => handleFieldFocus('name')}
                 onBlur={() => setActiveField(null)}
               />
             </BlurView>
@@ -249,7 +336,7 @@ export default function OnboardingScreen({ navigation }) {
                 placeholderTextColor="#9FA3B2"
                 selectionColor={colors.cyan}
                 style={styles.input}
-                onFocus={() => setActiveField('date')}
+                onFocus={() => handleFieldFocus('date')}
                 onBlur={() => setActiveField(null)}
               />
             </BlurView>
@@ -263,7 +350,7 @@ export default function OnboardingScreen({ navigation }) {
                 placeholderTextColor="#9FA3B2"
                 selectionColor={colors.cyan}
                 style={styles.input}
-                onFocus={() => setActiveField('time')}
+                onFocus={() => handleFieldFocus('time')}
                 onBlur={() => setActiveField(null)}
               />
             </BlurView>
@@ -277,7 +364,7 @@ export default function OnboardingScreen({ navigation }) {
                 placeholderTextColor="#9FA3B2"
                 selectionColor={colors.cyan}
                 style={styles.input}
-                onFocus={() => setActiveField('location')}
+                onFocus={() => handleFieldFocus('location')}
                 onBlur={() => setActiveField(null)}
               />
             </BlurView>
@@ -286,7 +373,11 @@ export default function OnboardingScreen({ navigation }) {
           <Animated.View style={[styles.buttonShell, { transform: [{ scale: buttonScale }] }]}>
             <Animated.View style={[styles.buttonGlow, buttonGlowStyle]} />
             <TouchableOpacity
-              style={[styles.button, isGenerating && styles.buttonDisabled]}
+              style={[
+                styles.button,
+                isGenerating && styles.buttonDisabled,
+                isButtonPressed && styles.buttonPressed,
+              ]}
               onPress={handleGenerate}
               onPressIn={handlePressIn}
               onPressOut={handlePressOut}
@@ -312,7 +403,8 @@ export default function OnboardingScreen({ navigation }) {
               <Text style={styles.revealValue}>{starSeedId}</Text>
             </Animated.View>
           )}
-        </AnimatedBlurView>
+          </AnimatedBlurView>
+        </Animated.View>
       </Animated.View>
     </View>
   );
@@ -404,12 +496,22 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.18)',
-    backgroundColor: 'rgba(11,15,25,0.55)',
-    shadowColor: '#000',
-    shadowOpacity: 0.35,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 12 },
+    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(11,15,25,0.58)',
+    shadowColor: 'rgba(90, 75, 170, 0.6)',
+    shadowOpacity: 0.4,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 14 },
+    overflow: 'hidden',
+  },
+  cardHalo: {
+    position: 'absolute',
+    top: -40,
+    right: -20,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: 'rgba(160, 132, 255, 0.22)',
   },
   label: {
     color: colors.gold,
@@ -476,6 +578,10 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.7,
+  },
+  buttonPressed: {
+    borderColor: 'rgba(255,255,255,0.35)',
+    shadowOpacity: 0.7,
   },
   buttonText: {
     color: colors.white,
