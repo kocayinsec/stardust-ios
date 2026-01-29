@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import Starfield from '../components/Starfield';
 import { colors, spacing } from '../constants/theme';
 
 const messages = [
@@ -28,7 +29,7 @@ export default function OracleChatScreen() {
       colors={[colors.midnight, '#0C1020', '#1D1233']}
       style={styles.container}
     >
-      <View style={styles.starfield} />
+      <Starfield />
       <View style={styles.header}>
         <Text style={styles.title}>AI Oracle</Text>
         <Text style={styles.subtitle}>A private channel to the stars</Text>
@@ -75,11 +76,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xl,
     paddingHorizontal: spacing.lg,
   },
-  starfield: {
-    ...StyleSheet.absoluteFillObject,
-    opacity: 0.15,
-    backgroundColor: '#0A0E1A',
-  },
+  // starfield handled by component
   header: {
     marginBottom: spacing.md,
   },

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import Starfield from '../components/Starfield';
 import { colors, spacing } from '../constants/theme';
 
 const energy = {
@@ -16,6 +17,7 @@ export default function DashboardScreen({ navigation }) {
       colors={[colors.midnight, '#0E1222', '#1B0F2C']}
       style={styles.container}
     >
+      <Starfield />
       <Text style={styles.title}>Galactic Energy</Text>
       <Text style={styles.subtitle}>Your cosmic momentum for today</Text>
 
