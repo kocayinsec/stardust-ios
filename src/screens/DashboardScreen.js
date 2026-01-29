@@ -102,9 +102,14 @@ export default function DashboardScreen({ navigation }) {
     floatLoop.start();
     glowLoop.start();
 
+    const arrivalTimeout = setTimeout(() => {
+      Haptics.selectionAsync().catch(() => null);
+    }, 360);
+
     return () => {
       floatLoop.stop();
       glowLoop.stop();
+      clearTimeout(arrivalTimeout);
     };
   }, [buttonGlow, cardFloat, goldAnim, headerAnim, oracleAnim, readingsAnim]);
 
@@ -187,15 +192,22 @@ export default function DashboardScreen({ navigation }) {
           </View>
           <View style={styles.readingGrid}>
             {dailyReadings.map((reading) => (
-              <LinearGradient
+              <Pressable
                 key={reading.id}
-                colors={['rgba(111, 88, 206, 0.45)', 'rgba(18, 22, 45, 0.8)']}
-                style={styles.readingCard}
+                onPressIn={triggerSelectionHaptic}
+                accessibilityRole="button"
               >
-                <Text style={styles.readingTime}>{reading.time}</Text>
-                <Text style={styles.readingName}>{reading.title}</Text>
-                <Text style={styles.readingDetail}>{reading.detail}</Text>
-              </LinearGradient>
+                {({ pressed }) => (
+                  <LinearGradient
+                    colors={['rgba(111, 88, 206, 0.45)', 'rgba(18, 22, 45, 0.8)']}
+                    style={[styles.readingCard, pressed && styles.readingCardPressed]}
+                  >
+                    <Text style={styles.readingTime}>{reading.time}</Text>
+                    <Text style={styles.readingName}>{reading.title}</Text>
+                    <Text style={styles.readingDetail}>{reading.detail}</Text>
+                  </LinearGradient>
+                )}
+              </Pressable>
             ))}
           </View>
         </Animated.View>
@@ -306,6 +318,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 12 },
+  },
+  readingCardPressed: {
+    transform: [{ scale: 0.98 }],
+    borderColor: 'rgba(255,255,255,0.32)',
+    shadowOpacity: 0.6,
   },
   readingTime: {
     color: 'rgba(180, 200, 255, 0.9)',

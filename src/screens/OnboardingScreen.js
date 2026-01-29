@@ -27,6 +27,7 @@ export default function OnboardingScreen({ navigation }) {
   const cardGlow = useRef(new Animated.Value(0)).current;
   const buttonScale = useRef(new Animated.Value(1)).current;
   const buttonGlow = useRef(new Animated.Value(0)).current;
+  const exitOpacity = useRef(new Animated.Value(0)).current;
   const navTimeout = useRef(null);
 
   useEffect(() => {
@@ -152,16 +153,23 @@ export default function OnboardingScreen({ navigation }) {
       .slice(-4)}`;
     setStarSeedId(nextId);
     revealAnim.setValue(0);
+    exitOpacity.setValue(0);
     Animated.timing(revealAnim, {
       toValue: 1,
       duration: 700,
       useNativeDriver: true,
     }).start(() => triggerSuccessHaptic());
+    Animated.timing(exitOpacity, {
+      toValue: 1,
+      duration: 520,
+      delay: 720,
+      useNativeDriver: true,
+    }).start();
 
     navTimeout.current = setTimeout(() => {
       setIsGenerating(false);
-      navigation.navigate('Dashboard');
-    }, 1400);
+      navigation.replace('Dashboard');
+    }, 1600);
   };
 
   const handlePressIn = () => {
@@ -406,6 +414,16 @@ export default function OnboardingScreen({ navigation }) {
           </AnimatedBlurView>
         </Animated.View>
       </Animated.View>
+
+      {isGenerating && (
+        <Animated.View pointerEvents="none" style={[styles.transitionVeil, { opacity: exitOpacity }]}>
+          <LinearGradient
+            colors={['rgba(5,6,15,0)', 'rgba(8,10,24,0.72)', 'rgba(6,7,18,0.95)']}
+            style={StyleSheet.absoluteFillObject}
+          />
+          <Text style={styles.transitionText}>Attuning your orbit…</Text>
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -610,5 +628,18 @@ const styles = StyleSheet.create({
     fontSize: 18,
     letterSpacing: 1.8,
     ...typography.title,
+  },
+  transitionVeil: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  transitionText: {
+    color: colors.gold,
+    fontSize: 16,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    ...typography.subtitle,
   },
 });

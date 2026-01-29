@@ -23,9 +23,21 @@ export default function App() {
             headerShown: false,
           }}
         >
-          <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-          <Stack.Screen name="Dashboard" component={DashboardScreen} />
-          <Stack.Screen name="OracleChat" component={OracleChatScreen} />
+          <Stack.Screen
+            name="Onboarding"
+            component={OnboardingScreen}
+            options={{ animation: 'fade', animationDuration: 520 }}
+          />
+          <Stack.Screen
+            name="Dashboard"
+            component={DashboardScreen}
+            options={{ animation: 'fade', animationDuration: 520 }}
+          />
+          <Stack.Screen
+            name="OracleChat"
+            component={OracleChatScreen}
+            options={{ animation: 'slide_from_right' }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </TypographyProvider>

@@ -8,6 +8,7 @@
 - Stop after ~4 hours and report back.
 
 ## Backlog (priority)
+- [x] Polish pass: subtle haptics + feedback states across onboarding/dashboard; refine onboarding→dashboard transition. (Added onboarding transition veil + replace nav, fade stack animation, haptic arrival cue, and pressed feedback on reading cards.)
 - [x] Polish pass: haptic hooks, refined button feedback, smoother scroll/entry animations. (Added haptics on key actions/focus, pressed states on CTAs, smooth auto-scroll for chat, and refreshed entry motion timing.)
 - [x] **URGENT: Redesign Onboarding (Premium Vibe).** The current one is too basic. Make it look expensive: (Added layered mystical gradient + glow orbs, animated entry fade/slide, glassmorphism inputs w/ focus state, and Star Seed ID reveal animation.)
     - Use a full-screen, high-quality mystical background image (or complex gradient).
