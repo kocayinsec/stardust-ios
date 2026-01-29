@@ -8,6 +8,7 @@ import LivingNebula from '../components/LivingNebula';
 import EnergyMeter from '../components/EnergyMeter';
 import { colors, spacing } from '../constants/theme';
 import { useTypography } from '../constants/typography';
+import { useSubscription } from '../iap/SubscriptionProvider';
 
 const energy = {
   type: 'Nebula',
@@ -38,6 +39,13 @@ const dailyReadings = [
 
 export default function DashboardScreen({ navigation }) {
   const typography = useTypography();
+  const {
+    products,
+    isSubscribed,
+    isPurchasing,
+    purchaseSubscription,
+    productIds,
+  } = useSubscription();
   const headerAnim = useRef(new Animated.Value(0)).current;
   const readingsAnim = useRef(new Animated.Value(0)).current;
   const oracleAnim = useRef(new Animated.Value(0)).current;
@@ -159,13 +167,21 @@ export default function DashboardScreen({ navigation }) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => null);
   };
 
+  const goldProduct = products.find((product) => product.productId === productIds?.[0]);
+  const goldPrice =
+    goldProduct?.priceString ??
+    goldProduct?.localizedPrice ??
+    (goldProduct?.price ? `$${goldProduct.price}` : '$19');
+
   const handleOraclePress = () => {
     triggerImpactHaptic();
     navigation.navigate('OracleChat');
   };
 
   const handleGoldPress = () => {
+    if (isSubscribed || isPurchasing) return;
     triggerImpactHaptic();
+    purchaseSubscription();
   };
 
   return (
@@ -245,17 +261,26 @@ export default function DashboardScreen({ navigation }) {
               <Text style={styles.goldPerkItem}>• Monthly astral gifts + rewards</Text>
             </View>
             <View style={styles.goldPriceRow}>
-              <Text style={styles.goldPrice}>$19</Text>
-              <Text style={styles.goldPriceDetail}>/month · Cancel anytime</Text>
+              <Text style={styles.goldPrice}>{goldPrice}</Text>
+              <Text style={styles.goldPriceDetail}>
+                {isSubscribed ? 'Active subscription' : '/month · Cancel anytime'}
+              </Text>
             </View>
             <View style={styles.goldButtonWrap}>
               <Animated.View pointerEvents="none" style={[styles.goldButtonGlow, glowStyle]} />
               <Pressable
-                style={({ pressed }) => [styles.goldButton, pressed && styles.goldButtonPressed]}
+                style={({ pressed }) => [
+                  styles.goldButton,
+                  pressed && !isSubscribed && styles.goldButtonPressed,
+                  (isSubscribed || isPurchasing) && styles.goldButtonDisabled,
+                ]}
                 onPress={handleGoldPress}
                 onPressIn={triggerSelectionHaptic}
+                disabled={isSubscribed || isPurchasing}
               >
-                <Text style={styles.goldButtonText}>Unlock Gold</Text>
+                <Text style={styles.goldButtonText}>
+                  {isSubscribed ? 'Gold Active' : isPurchasing ? 'Unlocking…' : 'Unlock Gold'}
+                </Text>
               </Pressable>
             </View>
           </LinearGradient>
@@ -496,6 +521,9 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.98 }],
     shadowOpacity: 0.65,
     borderColor: 'rgba(255,255,255,0.5)',
+  },
+  goldButtonDisabled: {
+    opacity: 0.7,
   },
   goldButtonText: {
     color: colors.midnight,

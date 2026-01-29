@@ -6,6 +6,7 @@ import * as Haptics from 'expo-haptics';
 import Starfield from '../components/Starfield';
 import { colors, spacing } from '../constants/theme';
 import { useTypography } from '../constants/typography';
+import { useSubscription } from '../iap/SubscriptionProvider';
 
 const dailyLimit = 3;
 
@@ -75,6 +76,7 @@ function MessageBubble({ message }) {
 
 export default function OracleChatScreen() {
   const typography = useTypography();
+  const { isSubscribed, isPurchasing, purchaseSubscription } = useSubscription();
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState('');
   const [remainingQuestions, setRemainingQuestions] = useState(dailyLimit);
@@ -164,7 +166,7 @@ export default function OracleChatScreen() {
 
     maybeResetDailyLimit();
 
-    if (remainingQuestions <= 0) {
+    if (!isSubscribed && remainingQuestions <= 0) {
       triggerWarningHaptic();
       setMessages((prev) => [
         ...prev,
@@ -187,14 +189,18 @@ export default function OracleChatScreen() {
       { id: `u-${Date.now()}`, type: 'user', text: trimmed },
       { id: `o-${Date.now() + 1}`, type: 'oracle', text: nextResponse },
     ]);
-    setRemainingQuestions((prev) => Math.max(prev - 1, 0));
+    if (!isSubscribed) {
+      setRemainingQuestions((prev) => Math.max(prev - 1, 0));
+    }
     setInput('');
   };
 
-  const limitReached = remainingQuestions <= 0;
+  const limitReached = !isSubscribed && remainingQuestions <= 0;
 
   const handleGateUnlock = () => {
+    if (isPurchasing || isSubscribed) return;
     triggerImpactHaptic();
+    purchaseSubscription();
   };
 
   return (
@@ -208,7 +214,9 @@ export default function OracleChatScreen() {
         <Text style={styles.subtitle}>A private channel to the stars</Text>
         <View style={styles.limitPill}>
           <Text style={styles.limitText}>
-            {limitReached
+            {isSubscribed
+              ? 'Stardust Gold active — unlimited questions'
+              : limitReached
               ? 'Daily limit reached — return at dawn'
               : `${remainingQuestions} free questions left today`}
           </Text>
@@ -233,11 +241,18 @@ export default function OracleChatScreen() {
               whispers, priority replies, and deeper rituals.
             </Text>
             <Pressable
-              style={({ pressed }) => [styles.gateButton, pressed && styles.buttonPressed]}
+              style={({ pressed }) => [
+                styles.gateButton,
+                pressed && !isPurchasing && styles.buttonPressed,
+                isPurchasing && styles.gateButtonDisabled,
+              ]}
               onPress={handleGateUnlock}
               onPressIn={triggerSelectionHaptic}
+              disabled={isPurchasing}
             >
-              <Text style={styles.gateButtonText}>Unlock Stardust Gold</Text>
+              <Text style={styles.gateButtonText}>
+                {isPurchasing ? 'Unlocking…' : 'Unlock Stardust Gold'}
+              </Text>
             </Pressable>
           </View>
         )}
@@ -341,6 +356,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.md,
     borderRadius: 12,
+  },
+  gateButtonDisabled: {
+    opacity: 0.7,
   },
   buttonPressed: {
     transform: [{ scale: 0.98 }],
