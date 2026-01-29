@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
 const SubscriptionContext = createContext(null);
 
@@ -56,7 +57,7 @@ export function SubscriptionProvider({ children }) {
     let isMounted = true;
 
     const connect = async () => {
-      if (Platform.OS === 'web') {
+      if (Platform.OS === 'web' || Constants.appOwnership === 'expo') {
         setIsConnecting(false);
         return;
       }
