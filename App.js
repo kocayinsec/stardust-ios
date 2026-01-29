@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
+import OracleChatScreen from './src/screens/OracleChatScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -19,6 +20,7 @@ export default function App() {
       >
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        <Stack.Screen name="OracleChat" component={OracleChatScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

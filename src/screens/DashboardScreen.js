@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { colors, spacing } from '../constants/theme';
@@ -10,7 +10,7 @@ const energy = {
   level: 74,
 };
 
-export default function DashboardScreen() {
+export default function DashboardScreen({ navigation }) {
   return (
     <LinearGradient
       colors={[colors.midnight, '#0E1222', '#1B0F2C']}
@@ -31,6 +31,12 @@ export default function DashboardScreen() {
       <BlurView intensity={25} tint="dark" style={styles.card}>
         <Text style={styles.cardTitle}>Oracle Whisper</Text>
         <Text style={styles.cardText}>{energy.description}</Text>
+        <TouchableOpacity
+          style={styles.oracleButton}
+          onPress={() => navigation.navigate('OracleChat')}
+        >
+          <Text style={styles.oracleButtonText}>Ask the Oracle</Text>
+        </TouchableOpacity>
       </BlurView>
     </LinearGradient>
   );
@@ -103,5 +109,17 @@ const styles = StyleSheet.create({
   cardText: {
     color: colors.white,
     lineHeight: 22,
+  },
+  oracleButton: {
+    marginTop: spacing.md,
+    backgroundColor: colors.purple,
+    paddingVertical: spacing.sm,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  oracleButtonText: {
+    color: colors.white,
+    fontWeight: '700',
+    letterSpacing: 0.6,
   },
 });
