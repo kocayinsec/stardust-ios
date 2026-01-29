@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import Starfield from '../components/Starfield';
@@ -20,28 +20,56 @@ export default function DashboardScreen({ navigation }) {
     >
       <LivingNebula />
       <Starfield density={60} color="rgba(255,255,255,0.75)" />
-      <Text style={styles.title}>Galactic Energy</Text>
-      <Text style={styles.subtitle}>Your cosmic momentum for today</Text>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>Galactic Energy</Text>
+        <Text style={styles.subtitle}>Your cosmic momentum for today</Text>
 
-      <View style={styles.meterWrap}>
-        <View style={styles.outerRing}>
-          <View style={styles.innerRing}>
-            <Text style={styles.energyValue}>{energy.level}%</Text>
-            <Text style={styles.energyType}>{energy.type} Energy</Text>
+        <View style={styles.meterWrap}>
+          <View style={styles.outerRing}>
+            <View style={styles.innerRing}>
+              <Text style={styles.energyValue}>{energy.level}%</Text>
+              <Text style={styles.energyType}>{energy.type} Energy</Text>
+            </View>
           </View>
         </View>
-      </View>
 
-      <BlurView intensity={25} tint="dark" style={styles.card}>
-        <Text style={styles.cardTitle}>Oracle Whisper</Text>
-        <Text style={styles.cardText}>{energy.description}</Text>
-        <TouchableOpacity
-          style={styles.oracleButton}
-          onPress={() => navigation.navigate('OracleChat')}
+        <BlurView intensity={25} tint="dark" style={styles.card}>
+          <Text style={styles.cardTitle}>Oracle Whisper</Text>
+          <Text style={styles.cardText}>{energy.description}</Text>
+          <TouchableOpacity
+            style={styles.oracleButton}
+            onPress={() => navigation.navigate('OracleChat')}
+          >
+            <Text style={styles.oracleButtonText}>Ask the Oracle</Text>
+          </TouchableOpacity>
+        </BlurView>
+
+        <LinearGradient
+          colors={['rgba(255,214,145,0.32)', 'rgba(255,171,82,0.18)', 'rgba(71,22,109,0.64)']}
+          style={styles.goldCard}
         >
-          <Text style={styles.oracleButtonText}>Ask the Oracle</Text>
-        </TouchableOpacity>
-      </BlurView>
+          <View style={styles.goldBadge}>
+            <Text style={styles.goldBadgeText}>STARDUST GOLD</Text>
+          </View>
+          <Text style={styles.goldTitle}>Ascend to Premium Rituals</Text>
+          <Text style={styles.goldSubtitle}>Private forecasts, deeper prophecies, and elite cosmic perks.</Text>
+          <View style={styles.goldPerks}>
+            <Text style={styles.goldPerkItem}>• Daily destiny readings + custom sigils</Text>
+            <Text style={styles.goldPerkItem}>• Priority Oracle sessions (instant replies)</Text>
+            <Text style={styles.goldPerkItem}>• Monthly astral gifts + rewards</Text>
+          </View>
+          <View style={styles.goldPriceRow}>
+            <Text style={styles.goldPrice}>$19</Text>
+            <Text style={styles.goldPriceDetail}>/month · Cancel anytime</Text>
+          </View>
+          <TouchableOpacity style={styles.goldButton}>
+            <Text style={styles.goldButtonText}>Unlock Gold</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      </ScrollView>
     </LinearGradient>
   );
 }
@@ -49,8 +77,11 @@ export default function DashboardScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  content: {
     padding: spacing.lg,
-    justifyContent: 'center',
+    paddingBottom: spacing.xl,
+    alignItems: 'stretch',
   },
   title: {
     fontSize: 30,
@@ -135,6 +166,82 @@ const styles = StyleSheet.create({
   },
   oracleButtonText: {
     color: colors.white,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    ...typography.body,
+  },
+  goldCard: {
+    marginTop: spacing.lg,
+    padding: spacing.lg,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255,226,170,0.35)',
+    shadowColor: 'rgba(255, 198, 120, 0.6)',
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 12 },
+  },
+  goldBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255, 215, 120, 0.22)',
+    borderRadius: 999,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 226, 170, 0.5)',
+    marginBottom: spacing.sm,
+  },
+  goldBadgeText: {
+    color: colors.gold,
+    fontSize: 12,
+    letterSpacing: 1.4,
+    fontWeight: '700',
+  },
+  goldTitle: {
+    color: colors.gold,
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: spacing.xs,
+    ...typography.title,
+  },
+  goldSubtitle: {
+    color: colors.white,
+    marginBottom: spacing.sm,
+    lineHeight: 22,
+    ...typography.body,
+  },
+  goldPerks: {
+    marginBottom: spacing.md,
+  },
+  goldPerkItem: {
+    color: 'rgba(255,255,255,0.88)',
+    marginBottom: 6,
+    ...typography.body,
+  },
+  goldPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginBottom: spacing.md,
+  },
+  goldPrice: {
+    color: colors.gold,
+    fontSize: 28,
+    fontWeight: '700',
+    marginRight: spacing.xs,
+    ...typography.title,
+  },
+  goldPriceDetail: {
+    color: 'rgba(255,255,255,0.72)',
+    ...typography.body,
+  },
+  goldButton: {
+    backgroundColor: colors.gold,
+    paddingVertical: spacing.sm,
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+  goldButtonText: {
+    color: colors.midnight,
     fontWeight: '700',
     letterSpacing: 0.6,
     ...typography.body,
