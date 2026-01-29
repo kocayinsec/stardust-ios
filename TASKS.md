@@ -17,6 +17,7 @@
 - [x] (Optional) Load a custom serif font with expo-font for consistent typography across platforms. (Added Cormorant Garamond font asset, expo-font loader, TypographyProvider with fallback.)
 
 ## Completed
+- [x] Implement Energy Meter (core hook) on Dashboard. (Added animated EnergyMeter component with pulsing ring/segments/orbit + Daily Readings cards in ethereal gradient styling.)
 - [x] Implement Oracle Chat behavior mock + daily free question gating. (Added mock oracle responses, daily 3-question UI gating, limit banner, and Stardust Gold upsell card.)
 - [x] Implement arcane + ethereal signature elements. (Added Living Nebula animated background, Constellation Sigil motion layer, and Cosmic Seal reveal styling.)
 - [x] Fix/verify Expo dependencies and run app locally once. (Aligned react-native-screens to ~4.16.0; expo-doctor clean; Metro booted)

@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import Starfield from '../components/Starfield';
 import LivingNebula from '../components/LivingNebula';
+import EnergyMeter from '../components/EnergyMeter';
 import { colors, spacing } from '../constants/theme';
 import { useTypography } from '../constants/typography';
 
@@ -12,6 +13,27 @@ const energy = {
   description: 'Creativity and dream signals are heightened today.',
   level: 74,
 };
+
+const dailyReadings = [
+  {
+    id: 'dawn',
+    title: 'Dawn Sigil',
+    time: 'Sunrise',
+    detail: 'Open portals for fresh ideas and soft reinvention.',
+  },
+  {
+    id: 'zenith',
+    title: 'Zenith Pulse',
+    time: 'Midday',
+    detail: 'Momentum peaks—lock in the task that moves destiny.',
+  },
+  {
+    id: 'veil',
+    title: 'Veilfall Rite',
+    time: 'Evening',
+    detail: 'Release weight, recalibrate, and protect your aura.',
+  },
+];
 
 export default function DashboardScreen({ navigation }) {
   const typography = useTypography();
@@ -30,13 +52,24 @@ export default function DashboardScreen({ navigation }) {
         <Text style={styles.title}>Galactic Energy</Text>
         <Text style={styles.subtitle}>Your cosmic momentum for today</Text>
 
-        <View style={styles.meterWrap}>
-          <View style={styles.outerRing}>
-            <View style={styles.innerRing}>
-              <Text style={styles.energyValue}>{energy.level}%</Text>
-              <Text style={styles.energyType}>{energy.type} Energy</Text>
-            </View>
-          </View>
+        <EnergyMeter level={energy.level} type={energy.type} />
+
+        <View style={styles.readingHeader}>
+          <Text style={styles.readingTitle}>Daily Readings</Text>
+          <Text style={styles.readingSubtitle}>Arcane checkpoints aligned to your orbit</Text>
+        </View>
+        <View style={styles.readingGrid}>
+          {dailyReadings.map((reading) => (
+            <LinearGradient
+              key={reading.id}
+              colors={['rgba(111, 88, 206, 0.45)', 'rgba(18, 22, 45, 0.8)']}
+              style={styles.readingCard}
+            >
+              <Text style={styles.readingTime}>{reading.time}</Text>
+              <Text style={styles.readingName}>{reading.title}</Text>
+              <Text style={styles.readingDetail}>{reading.detail}</Text>
+            </LinearGradient>
+          ))}
         </View>
 
         <BlurView intensity={25} tint="dark" style={styles.card}>
@@ -101,41 +134,54 @@ const styles = StyleSheet.create({
     fontSize: 16,
     ...typography.subtitle,
   },
-  meterWrap: {
+  readingHeader: {
+    marginBottom: spacing.sm,
     alignItems: 'center',
-    marginBottom: spacing.lg,
   },
-  outerRing: {
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    borderWidth: 2,
-    borderColor: 'rgba(155, 110, 255, 0.9)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: 'rgba(130, 90, 255, 0.9)',
-    shadowOpacity: 0.55,
-    shadowRadius: 24,
-  },
-  innerRing: {
-    width: 170,
-    height: 170,
-    borderRadius: 85,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.28)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-  energyValue: {
-    fontSize: 36,
+  readingTitle: {
     color: colors.gold,
+    fontSize: 20,
     fontWeight: '700',
     ...typography.title,
   },
-  energyType: {
+  readingSubtitle: {
+    marginTop: 4,
+    color: 'rgba(255,255,255,0.7)',
+    textAlign: 'center',
+    ...typography.body,
+  },
+  readingGrid: {
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  readingCard: {
+    borderRadius: 18,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.14)',
+    shadowColor: 'rgba(110, 80, 200, 0.5)',
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 10 },
+  },
+  readingTime: {
+    color: 'rgba(180, 200, 255, 0.9)',
+    fontSize: 12,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    ...typography.label,
+  },
+  readingName: {
     color: colors.white,
+    fontSize: 18,
+    fontWeight: '700',
     marginTop: spacing.xs,
+    ...typography.title,
+  },
+  readingDetail: {
+    marginTop: spacing.xs,
+    color: 'rgba(255,255,255,0.78)',
+    lineHeight: 20,
     ...typography.body,
   },
   card: {
